@@ -1,0 +1,8 @@
+build Dockerfile
+docker build -t mysql_db .
+
+run image
+docker run mysql_db
+
+run image with expose port
+docker run -d -p 3306:3306 mysql_db
