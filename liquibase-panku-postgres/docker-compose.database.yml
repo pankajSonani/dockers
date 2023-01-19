@@ -1,0 +1,20 @@
+version: '3.9'
+
+volumes:
+  postgres-panku-data:
+
+services:
+  panku-db:
+    container_name: postgres-db
+    image: postgres:11-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-panku-data:/var/lib/postgresql/data
+    networks:
+      - panku-net
+networks:
+  panku-net:

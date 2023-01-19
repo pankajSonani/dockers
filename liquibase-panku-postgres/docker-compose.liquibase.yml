@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  panku-liquibase:
+    container_name: panku-liquibase
+    image: liquibase/liquibase
+    command: liquibase --url="jdbc:postgresql://postgres-db:5432/postgres?user=postgres&password=postgres" --changeLogFile=changelog.xml update
+    volumes:
+      - ./config/changelog.xml:/liquibase/changelog.xml
+      - ./scripts:/liquibase/scripts
+    networks:
+      - panku-net
+networks:
+  panku-net:

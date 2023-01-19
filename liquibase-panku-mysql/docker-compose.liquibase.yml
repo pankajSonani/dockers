@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  panku-liquibase-mysql:
+    container_name: panku-liquibase
+    image: liquibase/liquibase-mysql
+    command: liquibase --url="jdbc:mysql://mysql-db:3306/mysql?user=root&password=mysql" --changeLogFile=changelog.xml update
+    volumes:
+      - ./config/changelog.xml:/liquibase/changelog.xml
+      - ./scripts:/liquibase/scripts
+    networks:
+      - panku-net-mysql
+networks:
+  panku-net-mysql:
