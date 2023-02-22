@@ -1,9 +1,5 @@
 version: '3'
 services:
-# Zookeeper instance 1 
-# container_name: Specifies the Name of the container
-# image: Specifies the image to use
-# ports: List of ports to be exposed for the container in the format of <HOST_PORT>:<CONTAINER_PORT>
     zookeeper_instance_1:
         container_name: zookeeper_instance_1
         image: quay.io/debezium/zookeeper
@@ -11,10 +7,6 @@ services:
             - 12181:2181
             - 12888:2888
             - 13888:3888
-# Zookeeper instance 2
-# container_name: Specifies the Name of the container
-# image: Specifies the image to use
-# ports: List of ports to be exposed for the container in the format of <HOST_PORT>:<CONTAINER_PORT>
     zookeeper_instance_2:
         container_name: zookeeper_instance_2
         image: quay.io/debezium/zookeeper
@@ -22,18 +14,6 @@ services:
             - 12182:2181
             - 12889:2888
             - 13889:3888
-# Kafka instance 1
-# container_name: Specifies the Name of the container
-# image: Specifies the image to use
-# environment: Environment Variables for the container. In this case we will be supplying variables as shown below
-# -- ZOOKEEPER_CONNECT: The link to Zookeeper Deployments (instance 1 and 2 in our case) in the format <container_name>:<port>
-# -- BROKER_ID: ID for the Kafka Instance
-# -- KAFKA_ADVERTISED_LISTENERS: Advertised INTERNAL AND EXTERNAL Listeners for the Kafka Instance
-# -- KAFKA_LISTENERS: INTERNAL AND EXTERNAL Listeners for the Kafka Instance
-# -- KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: Protocol definition for the above specified Listeners
-# -- KAFKA_INTER_BROKER_LISTENER_NAME: Listener to use for the broker
-# depends_on: Specifies dependency on other containers i.e, wait for the specified containers to come up before starting
-# ports: List of ports to be exposed for the container in the format of <HOST_PORT>:<CONTAINER_PORT>
     kafka_instance_1:
         container_name: kafka_instance_1
         image: quay.io/debezium/kafka
@@ -49,18 +29,6 @@ services:
             - zookeeper_instance_2
         ports:
             - 9091:9091
-# Kafka instance 2
-# container_name: Specifies the Name of the container
-# image: Specifies the image to use
-# environment: Environment Variables for the container. In this case we will be supplying variables as shown below
-# -- ZOOKEEPER_CONNECT: The link to Zookeeper Deployments (instance 1 and 2 in our case) in the format <container_name>:<port>
-# -- BROKER_ID: ID for the Kafka Instance
-# -- KAFKA_ADVERTISED_LISTENERS: Advertised INTERNAL AND EXTERNAL Listeners for the Kafka Instance
-# -- KAFKA_LISTENERS: INTERNAL AND EXTERNAL Listeners for the Kafka Instance
-# -- KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: Protocol definition for the above specified Listeners
-# -- KAFKA_INTER_BROKER_LISTENER_NAME: Listener to use for the broker
-# depends_on: Specifies dependency on other containers i.e, wait for the specified containers to come up before starting
-# ports: List of ports to be exposed for the container in the format of <HOST_PORT>:<CONTAINER_PORT>
     kafka_instance_2:
         container_name: kafka_instance_2
         image: quay.io/debezium/kafka
@@ -76,18 +44,6 @@ services:
             - zookeeper_instance_2
         ports:
             - 9092:9092
-# Kafka instance 3
-# container_name: Specifies the Name of the container
-# image: Specifies the image to use
-# environment: Environment Variables for the container. In this case we will be supplying variables as shown below
-# -- ZOOKEEPER_CONNECT: The link to Zookeeper Deployments (instance 1 and 2 in our case) in the format <container_name>:<port>
-# -- BROKER_ID: ID for the Kafka Instance
-# -- KAFKA_ADVERTISED_LISTENERS: Advertised INTERNAL AND EXTERNAL Listeners for the Kafka Instance
-# -- KAFKA_LISTENERS: INTERNAL AND EXTERNAL Listeners for the Kafka Instance
-# -- KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: Protocol definition for the above specified Listeners
-# -- KAFKA_INTER_BROKER_LISTENER_NAME: Listener to use for the broker
-# depends_on: Specifies dependency on other containers i.e, wait for the specified containers to come up before starting
-# ports: List of ports to be exposed for the container in the format of <HOST_PORT>:<CONTAINER_PORT>
     kafka_instance_3:
         container_name: kafka_instance_3
         image: quay.io/debezium/kafka
@@ -103,35 +59,15 @@ services:
             - zookeeper_instance_2
         ports:
             - 9093:9093
-# MySQL Instance
-# container_name: Specifies the Name of the container
-# image: Specifies the image to use
-# environment: Environment Variables for the container. In this case we will be supplying variables as shown below
-# -- MYSQL_PASSWORD: The password for the mysql instance
-# -- MYSQL_ROOT_PASSWORD: The root password for the mysql instance
-# -- MYSQL_USER: The user for the mysql instance
-# ports: List of ports to be exposed for the container in the format of <HOST_PORT>:<CONTAINER_PORT>
     mysql:
         container_name: mysql
         environment:
             MYSQL_PASSWORD: mysqlpw
             MYSQL_ROOT_PASSWORD: debezium
             MYSQL_USER: mysqluser
-        platform: linux/arm64/v8
-        image: quay.io/debezium/example-mysql:5.7
+        image: quay.io/debezium/example-mysql
         ports:
             - 3307:3306
-# Kafka Connect
-# container_name: Specifies the Name of the container
-# image: Specifies the image to use
-# environment: Environment Variables for the container. In this case we will be supplying variables as shown below
-# -- OFFSET_STORAGE_TOPIC: Custom Topic Name for the Offset Storage Topic
-# -- STATUS_STORAGE_TOPIC: Custom Topic Name for the Status Storage Topic
-# -- CONFIG_STORAGE_TOPIC: Custom Topic Name for the Config Storage Topic
-# -- GROUP_ID: Group ID for the instance
-# -- BOOTSTRAP_SERVERS: The link to Kafka Deployments (instance 1, 2 and 3 in our case) in the format <container_name>:<port>
-# depends_on: Specifies dependency on other containers i.e, wait for the specified containers to come up before starting
-# ports: List of ports to be exposed for the container in the format of <HOST_PORT>:<CONTAINER_PORT>
     connect:
         container_name: connect
         environment:
@@ -150,12 +86,6 @@ services:
             - mysql
         ports:
             - 8083:8083
-# Kafdrop
-# container_name: Specifies the Name of the container
-# image: Specifies the image to use
-# environment: Environment Variables for the container. In this case we will be supplying variables as shown below
-# -- KAFKA_BROKERCONNECT: The link to Kafka Deployments (instance 1, 2 and 3 in our case) in the format <container_name>:<port>
-# ports: List of ports to be exposed for the container in the format of <HOST_PORT>:<CONTAINER_PORT>
     kafdrop:
         container_name: kafdrop
         environment:
@@ -163,3 +93,26 @@ services:
         image: obsidiandynamics/kafdrop
         ports:
             - 9000:9000
+
+# http://localhost:9000/topic/dbserver1.inventory.addresses
+# http://localhost:8083/connectors
+
+# Postman
+# curl --location --request POST 'http://localhost:8083/connectors' \
+# --header 'Content-Type: application/json' \
+# --data-raw '{
+#  "name": "inventory-connector",  
+#  "config": {  
+#    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+#    "tasks.max": "1",  
+#    "database.hostname": "mysql",  
+#    "database.port": "3306",
+#    "database.user": "debezium",
+#    "database.password": "dbz",
+#    "database.server.id": "1",  
+#    "database.server.name": "dbserver1",  
+#    "database.include.list": "inventory",  
+#    "database.history.kafka.bootstrap.servers": "kafka_instance_1:9091,kafka_instance_2:9092,kafka_instance_3:9093",  
+#    "database.history.kafka.topic": "schema-changes.inventory"  
+#  }
+# }'
