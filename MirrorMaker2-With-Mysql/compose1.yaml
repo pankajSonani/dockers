@@ -1,0 +1,96 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: debezium/zookeeper:1.6
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: debezium/kafka:1.6
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    depends_on:
+      - zookeeper
+
+  source-mysql:
+    image: debezium/example-mysql:1.6
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=debezium
+      - MYSQL_USER=mysqluser
+      - MYSQL_PASSWORD=mysqlpw
+      - MYSQL_DATABASE=dbserver1
+      - MYSQL_HOST=kafka
+      - MYSQL_PORT=3306
+    volumes:
+      - "./mysql-init:/docker-entrypoint-initdb.d"
+    depends_on:
+      - kafka
+
+  destination-mysql:
+    image: debezium/example-mysql:1.6
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=debezium
+      - MYSQL_USER=mysqluser
+      - MYSQL_PASSWORD=mysqlpw
+      - MYSQL_DATABASE=dbserver2
+      - MYSQL_HOST=kafka
+      - MYSQL_PORT=3306
+    volumes:
+      - "./mysql-init:/docker-entrypoint-initdb.d"
+    depends_on:
+      - kafka
+
+  mirror-maker:
+    image: debezium/mirror-maker:1.6
+    depends_on:
+      - zookeeper
+      - kafka
+      - source-mysql
+      - destination-mysql
+    environment:
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=my-connect-configs
+      - OFFSET_STORAGE_TOPIC=my-connect-offsets
+      - STATUS_STORAGE_TOPIC=my-connect-status
+      - BOOTSTRAP_SERVERS=kafka:9092
+      - SOURCE_CLUSTER_NAME=dbserver1
+      - SOURCE_TOPICS=dbserver1.*
+      - DESTINATION_BOOTSTRAP_SERVERS=kafka:9092
+      - DESTINATION_CLUSTER_NAME=dbserver2
+      - WHITELIST_TOPICS=dbserver1.*
+      - ENABLE_AUTO_COMMIT=true
+      - HEARTBEAT_INTERVAL_MS=3000
+      - SESSION_TIMEOUT_MS=10000
+
+  connect:
+    image: debezium/connect:1.6
+    depends_on:
+      - zookeeper
+      - kafka
+      - source-mysql
+      - destination-mysql
+    ports:
+      - "8083:8083"
+    environment:
+      - BOOTSTRAP_SERVERS=kafka:9092
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=my-connect-configs
+      - OFFSET_STORAGE_TOPIC=my-connect-offsets
+      - STATUS_STORAGE_TOPIC=my-connect-status
+      - CONFIG_PROVIDERS=file
+      - CONFIG_PROVIDERS_FILE_PATH=/kafka/configs/connect.properties
+      - CONNECT_PLUGIN_PATH=/kafka/connect-plugins
+      - CONNECT_REST_ADVERTISED_HOST_NAME=connect
+      - CONNECT_LOG4J_ROOT_LOGLEVEL=INFO
+    volumes:
+      - "./connectors:/kafka/connectors"
+      - "./configs:/kafka/configs"
+      - "./plugins:/kafka/connect-plugins"
