@@ -1,0 +1,88 @@
+version: '3.7'
+
+services:
+
+  # Source Kafka cluster
+  source-kafka:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://source-kafka:9092,EXTERNAL://${HOST_IP:-localhost}:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: source-zookeeper:2181
+    ports:
+      - 29092:29092
+    depends_on:
+      - source-zookeeper
+
+  # Source Zookeeper for Kafka cluster
+  source-zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  # Destination Kafka cluster
+  destination-kafka:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://destination-kafka:9092,EXTERNAL://${HOST_IP:-localhost}:39092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: destination-zookeeper:2181
+    ports:
+      - 39092:39092
+    depends_on:
+      - destination-zookeeper
+
+  # Destination Zookeeper for Kafka cluster
+  destination-zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  # MySQL
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: mm2_user
+      MYSQL_PASSWORD: mm2_pass
+      MYSQL_DATABASE: mm2_db
+
+  # Mirror Maker 2
+  mirror-maker-2:
+    image: confluentinc/cp-kafka-connect-base:latest
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: source-kafka:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: mirror-maker-2
+      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/jars
+      CONNECT_CONFIG_STORAGE_TOPIC: _mm2-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: _mm2-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: _mm2-status
+      CONNECT_GROUP_ID: mirror-maker-2
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_PRODUCER_BOOTSTRAP_SERVERS: destination-kafka:9092
+      CONNECT_PRODUCER_CLIENT_ID: mirror-maker-2-producer
+      CONNECT_PRODUCER_ACKS: 1
+      CONNECT_CONSUMER_BOOTSTRAP_SERVERS: source-kafka:9092
+      CONNECT_CONSUMER_CLIENT_ID: mirror-maker-2-consumer
+      CONNECT_NUM_STREAMS: 1
+      CONNECT_HEARTBEAT_INTERVAL_MS: 3000
+      CONNECT_TASKS_MAX: 1
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_INSTANCE_ID: mirror-maker-2-instance
+      CONNECT_CONFIG_STORAGE_COMPRESSION_TYPE: lz4
+      CONNECT_OFFSET_STORAGE_COMPRESSION_TYPE: lz4
+      CONNECT_STATUS_STORAGE_COMPRESSION_TYPE: lz4
+    ports:
+      - 8083:8083
+    depends_on:
+      - source-kafka
+      - destination-kafka
+      - mysql
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d

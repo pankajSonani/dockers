@@ -1,22 +1,22 @@
-version: '3'
+version: '3.8'
 services:
     zookeeper_instance_1:
         container_name: zookeeper_instance_1
-        image: quay.io/debezium/zookeeper
+        image: quay.io/debezium/zookeeper:2.2
         ports:
             - 12181:2181
             - 12888:2888
             - 13888:3888
     zookeeper_instance_2:
         container_name: zookeeper_instance_2
-        image: quay.io/debezium/zookeeper
+        image: quay.io/debezium/zookeeper:2.2
         ports:
             - 12182:2181
             - 12889:2888
             - 13889:3888
     kafka_instance_1:
         container_name: kafka_instance_1
-        image: quay.io/debezium/kafka
+        image: quay.io/debezium/kafka:2.2
         environment:
             ZOOKEEPER_CONNECT: zookeeper_instance_1:2181,zookeeper_instance_2:2181
             BROKER_ID: 1
@@ -31,7 +31,7 @@ services:
             - 9091:9091
     kafka_instance_2:
         container_name: kafka_instance_2
-        image: quay.io/debezium/kafka
+        image: quay.io/debezium/kafka:2.2
         environment:
             ZOOKEEPER_CONNECT: zookeeper_instance_1:2181,zookeeper_instance_2:2181
             BROKER_ID: 2
@@ -46,7 +46,7 @@ services:
             - 9092:9092
     kafka_instance_3:
         container_name: kafka_instance_3
-        image: quay.io/debezium/kafka
+        image: quay.io/debezium/kafka:2.2
         environment:
             ZOOKEEPER_CONNECT: zookeeper_instance_1:2181,zookeeper_instance_2:2181
             BROKER_ID: 3
@@ -65,7 +65,7 @@ services:
             MYSQL_PASSWORD: mysqlpw
             MYSQL_ROOT_PASSWORD: debezium
             MYSQL_USER: mysqluser
-        image: quay.io/debezium/example-mysql
+        image: quay.io/debezium/example-mysql:2.2
         ports:
             - 3307:3306
     connect:
